@@ -18,7 +18,8 @@ PhpocClient client;
 //////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////// motor
-const int stepsPerRevolution = 180;
+//const
+int stepsPerRevolution = 120;
 int leftPosition = 0;
 int rightPosition = 0;
 
@@ -118,14 +119,21 @@ void disconnectToServer() {
 ////////////////////////////////////////////////////////// motor
 void initCards() {
   getNumber();
-  int lStep = 10 - leftMotorData10;
+  if(leftMotorData10 ==  0) {
+    leftMotorData10 = 10;
+  }
+  if(rightMotorData01 == 0) {
+    rightMotorData01 = 10;
+  }
+  int lStep = 10 - leftMotorData10;                                                                 
   int rStep = 10 - rightMotorData01;
   stepMotor(lStep, rStep);
 }
 
 void setupMotor() {
-  leftStepper.setSpeed(60);
-  rightStepper.setSpeed(60);
+  stepsPerRevolution = 126+9;
+  leftStepper.setSpeed(120);
+  rightStepper.setSpeed(120);
 }
 
 void stepMotor(int leftDataInterval, int rightDataInterval) {
@@ -147,8 +155,22 @@ void stepMotor(int leftDataInterval, int rightDataInterval) {
 
   // step one revolution  in one direction:
   // clockwise
-  rightStepper.step(-stepsPerRevolution*rightDataInterval);
-  leftStepper.step(stepsPerRevolution*leftDataInterval);
+  //rightStepper.step(-stepsPerRevolution*rightDataInterval);
+  //leftStepper.step(stepsPerRevolution*leftDataInterval);
+
+  if(rightDataInterval) {
+    for(int i=0; i<rightDataInterval; i++) {
+      rightStepper.step(-stepsPerRevolution);
+      delay(200);
+    }
+  }
+  if(leftDataInterval) {
+    for(int i=0; i<leftDataInterval; i++) {
+      leftStepper.step(stepsPerRevolution);
+      delay(200);
+    }
+  }
+
 }
 //////////////////////////////////////////////////////////
 void setup() {
@@ -156,10 +178,12 @@ void setup() {
   connectToServer("/init HTTP/1.1");
   initCards();
   disconnectToServer();
+  leftMotorData10 = 0;
+  rightMotorData01 = 0;
+  delay(1000);
 }
 
 void loop() {
-  //String dataLocation = "/unread_count HTTP/1.1";
   connectToServer("/unread_count HTTP/1.1");
   getNumber();
   disconnectToServer();
